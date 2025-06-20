@@ -7,7 +7,7 @@ const localQuizData = {
   cricket: { name: "Cricket", icon: "🏏" },
   football: { name: "Football (US)", icon: "🏈" },
   soccer: { name: "Soccer", icon: "⚽" },
-  "formula-1": { name: "Formula 1", icon: "🏎️" },
+  formula1: { name: "Formula 1", icon: "🏎️" },
   tennis: { name: "Tennis", icon: "🎾" },
 };
 

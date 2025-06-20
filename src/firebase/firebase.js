@@ -392,4 +392,30 @@ export const testQuizResultSave = async (userId) => {
   }
 };
 
+// Fetch random questions from Firestore using the random field trick, filtering out used IDs
+export async function getRandomQuestions(category, count, usedIds = new Set()) {
+  const r = Math.random();
+  const colRef = collection(db, category);
+
+  // First query: random >= r
+  let q = query(colRef, where("random", ">=", r), orderBy("random"), limit(count * 2));
+  let snap = await getDocs(q);
+  let questions = snap.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter(q => !usedIds.has(q.id));
+
+  // If not enough, get the rest from random < r
+  if (questions.length < count) {
+    let q2 = query(colRef, where("random", "<", r), orderBy("random"), limit((count - questions.length) * 2));
+    let snap2 = await getDocs(q2);
+    const more = snap2.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(q => !usedIds.has(q.id));
+    questions = questions.concat(more);
+  }
+
+  // Return only the requested number
+  return questions.slice(0, count);
+}
+
 export default app;

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { saveQuizResult } from '../firebase/firebase.js';
+import { getRandomQuestions, saveQuizResult } from '../firebase/firebase.js';
 
 const Quiz = ({ categoryKey, onQuizComplete, user }) => {
-  const [allQuestions, setAllQuestions] = useState([]);
+  const [questions, setQuestions] = useState([]);
   const [usedQuestionIds, setUsedQuestionIds] = useState(new Set());
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [questionNumber, setQuestionNumber] = useState(1);
-  
   const [score, setScore] = useState(0);
   const [stats, setStats] = useState({ correct: 0, incorrect: 0, hints: 0 });
   const [userInput, setUserInput] = useState("");
@@ -14,99 +13,41 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
   const [showHint, setShowHint] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to select the next random question
-  const selectNextQuestion = React.useCallback((available, usedIds) => {
-    let unusedQuestions = available.filter(q => !usedIds.has(q.id));
- 
-    // If we have run out of unique questions, reset the pool to make it unlimited.
-    if (unusedQuestions.length === 0 && available.length > 0) {
-      const newUsedIds = new Set(); // Create an empty set
-      setUsedQuestionIds(newUsedIds); // Reset the state
-      unusedQuestions = available; // All questions are now available again
-    }
-
-    // If after all that, there are still no questions (e.g. JSON files were empty), end the quiz.
-    if (unusedQuestions.length === 0) {
-      console.log('🏁 No questions available to select! Finishing quiz...');
-      // Use current state values at call time instead of closure values
-      setScore(currentScore => {
-        setStats(currentStats => {
-          onQuizComplete({ score: currentScore, ...currentStats });
-          return currentStats;
-        });
-        return currentScore;
-      });
-      return;
-    }
-
-    const randomIndex = Math.floor(Math.random() * unusedQuestions.length);
-    const nextQuestion = unusedQuestions[randomIndex];
-
-    console.log(`🎯 Selected question: "${nextQuestion.question}" (ID: ${nextQuestion.id})`);
-    setCurrentQuestion(nextQuestion);
-    // Use the function version of setState to ensure we have the latest `prevUsed`
-    setUsedQuestionIds(prevUsed => new Set(prevUsed).add(nextQuestion.id));
-    setQuestionNumber(prev => prev + 1);
-  }, [onQuizComplete]); // Removed score and stats from dependency array
-
-
-  // Effect to load all questions from JSON when the component mounts
+  // Fetch initial 10 questions
   useEffect(() => {
-    const loadQuestions = async () => {
+    async function loadInitialQuestions() {
       setIsLoading(true);
-      try {
-        let jsonData;
-        switch (categoryKey) {
-          case 'cricket':   jsonData = (await import('../assets/cricket_quiz_questions.json')).default; break;
-          case 'football':  jsonData = (await import('../assets/american_football_quiz_questions.json')).default; break;
-          case 'soccer':    jsonData = (await import('../assets/soccer_quiz_questions.json')).default; break;
-          case 'formula-1': jsonData = (await import('../assets/formula1_quiz_questions.json')).default; break;
-          case 'tennis':    jsonData = (await import('../assets/tennis_quiz_questions.json')).default; break;
-          default: throw new Error(`Unknown category: ${categoryKey}`);
-        }
+      const initial = await getRandomQuestions(categoryKey, 10);
+      setQuestions(initial);
+      setUsedQuestionIds(new Set(initial.map(q => q.id)));
+      setCurrentQuestion(initial[0] || null);
+      setQuestionNumber(1);
+      setIsLoading(false);
+    }
+    loadInitialQuestions();
+  }, [categoryKey]);
 
-        // Filter for unique questions and add a unique ID to each
-        const uniqueQuestions = [];
-        const seenQuestions = new Set();
-        jsonData.forEach((q, index) => {
-          const questionText = q.question.toLowerCase().trim();
-          if (!seenQuestions.has(questionText)) {
-            seenQuestions.add(questionText);
-            uniqueQuestions.push({ ...q, id: `${categoryKey}-${index}` });
-          }
+  // Fetch 20 more when user reaches question 7
+  useEffect(() => {
+    if (questionNumber === 8 && questions.length === 10) {
+      async function loadMoreQuestions() {
+        const more = await getRandomQuestions(categoryKey, 20, usedQuestionIds);
+        setQuestions(prev => [...prev, ...more]);
+        setUsedQuestionIds(prev => {
+          const newSet = new Set(prev);
+          more.forEach(q => newSet.add(q.id));
+          return newSet;
         });
-        
-        setAllQuestions(uniqueQuestions);
-        // Select the very first question
-        if (uniqueQuestions.length > 0) {
-          const firstQuestion = uniqueQuestions[Math.floor(Math.random() * uniqueQuestions.length)];
-          console.log(`🎯 Initial question: "${firstQuestion.question}" (ID: ${firstQuestion.id})`);
-          setCurrentQuestion(firstQuestion);
-          setUsedQuestionIds(new Set().add(firstQuestion.id));
-        }
-
-      } catch (error) {
-        console.error("Error loading initial questions:", error);
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    loadQuestions();
-  }, [categoryKey, selectNextQuestion]);
-
+      loadMoreQuestions();
+    }
+  }, [questionNumber, questions.length, categoryKey, usedQuestionIds]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!userInput.trim() || !currentQuestion) return;
-    
     const correctAnswer = currentQuestion.answer;
     const isCorrect = userInput.trim().toLowerCase() === correctAnswer.toLowerCase();
-    
-    console.log(`📝 Question ${questionNumber}: "${currentQuestion.question}"`);
-    console.log(`💭 User answer: "${userInput.trim()}" | Correct answer: "${correctAnswer}"`);
-    console.log(`✅ Result: ${isCorrect ? 'CORRECT' : 'INCORRECT'}`);
-    
     if (isCorrect) {
       setAnswerStatus("correct");
       setScore((s) => s + 100);
@@ -118,12 +59,19 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
   };
 
   const handleNextQuestion = () => {
-    console.log(`🔄 Moving to next question (current was Q${questionNumber})`);
     setAnswerStatus(null);
     setUserInput("");
     setShowHint(false);
-    // Select the next random question from the pool
-    selectNextQuestion(allQuestions, usedQuestionIds);
+    // Find the next unused question
+    const currentIdx = questions.findIndex(q => q.id === currentQuestion.id);
+    let nextIdx = currentIdx + 1;
+    if (nextIdx < questions.length) {
+      setCurrentQuestion(questions[nextIdx]);
+      setQuestionNumber(prev => prev + 1);
+    } else {
+      // No more questions, finish quiz
+      handleFinishQuiz();
+    }
   };
 
   const handleFinishQuiz = async () => {
@@ -135,20 +83,16 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
       hints: stats.hints,
       questionsAnswered: stats.correct + stats.incorrect
     };
-
-    // Save to Firebase if user is available
     if (user && user.uid) {
       try {
         await saveQuizResult(user.uid, quizData);
-        console.log('✅ Quiz result saved to Firebase');
       } catch (error) {
-        console.error('❌ Failed to save quiz result:', error);
+        console.error("Error saving quiz result:", error);
       }
     }
-
     onQuizComplete(quizData);
   };
-  
+
   if (isLoading || !currentQuestion) {
     return (
       <div style={{ minHeight: '100vh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>

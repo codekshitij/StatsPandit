@@ -14,6 +14,9 @@ dist-ssr
 firebase-debug.log
 .env
 
+# Firebase service account key (DO NOT COMMIT)
+stats-pandit-firebase-adminsdk-fbsvc-1d37aa10f4.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
