@@ -66,3 +66,31 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Mobile-specific input fixes */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  
+  /* Prevent viewport scaling when input is focused */
+  input:focus, textarea:focus, select:focus {
+    font-size: 16px !important;
+    outline: none;
+  }
+  
+  /* Ensure touch targets are large enough */
+  button, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Fix for iOS Safari input zoom */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
+  font-size: 16px;
+  transform: scale(1);
+  -webkit-transform: scale(1);
+}

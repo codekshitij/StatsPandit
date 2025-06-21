@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getRandomQuestions, saveQuizResult } from '../firebase/firebase.js';
 
 // Sports configuration for display names
@@ -18,6 +18,7 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
   const [userInput, setUserInput] = useState("");
   const [answerStatus, setAnswerStatus] = useState(null);
   const [showHint, setShowHint] = useState(false);
+  const inputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch initial 10 questions
@@ -118,7 +119,25 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
   const scoreLabelStyle = { fontSize: '0.8rem', color: '#00ffff', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '5px' };
   const scoreValueStyle = { fontSize: '2rem', fontWeight: 'bold', color: '#fef08a', textShadow: '2px 2px 0px #86198f' };
   const questionStyle = { backgroundColor: 'rgba(0, 0, 0, 0.7)', border: '3px solid rgba(255, 255, 255, 0.3)', borderRadius: '15px', padding: '30px', marginBottom: '30px', fontSize: '1.4rem', color: '#ffffff', lineHeight: '1.6', backdropFilter: 'blur(10px)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-  const inputStyle = { width: '100%', padding: '20px', fontSize: '1.3rem', textAlign: 'center', border: '4px solid #ffffff', borderRadius: '12px', marginBottom: '20px', fontFamily: "'Silkscreen', monospace", backgroundColor: answerStatus === 'correct' ? '#10b981' : answerStatus === 'incorrect' ? '#ef4444' : '#ffffff', color: answerStatus ? '#ffffff' : '#000000', transition: 'all 0.3s ease', outline: 'none' };
+  const inputStyle = { 
+    width: '100%', 
+    padding: '20px', 
+    fontSize: '1.3rem', 
+    textAlign: 'center', 
+    border: '4px solid #ffffff', 
+    borderRadius: '12px', 
+    marginBottom: '20px', 
+    fontFamily: "'Silkscreen', monospace", 
+    backgroundColor: answerStatus === 'correct' ? '#10b981' : answerStatus === 'incorrect' ? '#ef4444' : '#ffffff', 
+    color: answerStatus ? '#ffffff' : '#000000', 
+    transition: 'all 0.3s ease', 
+    outline: 'none',
+    WebkitAppearance: 'none', // Remove iOS styling
+    WebkitBorderRadius: '12px', // Ensure border radius on iOS
+    touchAction: 'manipulation', // Prevent zoom on mobile
+    minHeight: '60px', // Ensure touch target is large enough
+    boxSizing: 'border-box' // Include padding in width calculation
+  };
   const buttonStyle = { backgroundColor: '#ffd700', color: '#000000', border: '4px solid #000000', borderRadius: '12px', padding: '15px 30px', fontSize: '1.1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', transition: 'all 0.3s ease', fontFamily: "'Silkscreen', monospace", width: '100%', marginBottom: '15px', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.3)' };
   const hintButtonStyle = { ...buttonStyle, backgroundColor: '#f59e0b', width: 'auto', flexGrow: 1, marginRight: '15px', marginBottom: '0' };
   const nextButtonStyle = { ...buttonStyle, backgroundColor: '#8b5cf6', width: 'auto', flexGrow: 1, marginBottom: '0' };
@@ -144,7 +163,21 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
 
         {/* Answer Form */}
         <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
-          <input type="text" value={userInput} onChange={(e) => setUserInput(e.target.value)} disabled={!!answerStatus} style={inputStyle} placeholder="Type your answer..."/>
+          <input 
+            ref={inputRef}
+            type="text" 
+            value={userInput} 
+            onChange={(e) => setUserInput(e.target.value)} 
+            disabled={!!answerStatus} 
+            style={inputStyle} 
+            placeholder="Type your answer..."
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+            inputMode="text"
+            enterKeyHint="done"
+          />
           {!answerStatus && (<button type="submit" style={buttonStyle}>⚡ SUBMIT ANSWER ⚡</button>)}
         </form>
 
