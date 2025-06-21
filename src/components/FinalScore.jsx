@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { SiCashapp } from 'react-icons/si';
+import { useResponsive } from '../utils/responsive.js';
 
 const FinalScore = ({ stats, onPlayAgain }) => {
+  const { isMobile } = useResponsive();
   const [hoveredButton, setHoveredButton] = useState(false);
   const [hoveredStatBox, setHoveredStatBox] = useState(null);
   const [showCoffeeModal, setShowCoffeeModal] = useState(false);
@@ -31,15 +33,15 @@ const FinalScore = ({ stats, onPlayAgain }) => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '40px'
+    padding: isMobile ? '10px 5px' : '40px'
   };
 
   const cardStyle = {
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
     border: '4px solid #00ffff',
-    borderRadius: '20px',
-    padding: '40px 30px',
-    maxWidth: '700px',
+    borderRadius: isMobile ? '10px' : '20px',
+    padding: isMobile ? '15px 12px' : '40px 30px',
+    maxWidth: isMobile ? '95%' : '700px',
     width: '100%',
     textAlign: 'center',
     boxShadow: '0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 255, 0.3)',
@@ -49,25 +51,26 @@ const FinalScore = ({ stats, onPlayAgain }) => {
   };
 
   const titleStyle = {
-    fontSize: '3.5rem',
+    fontSize: isMobile ? '1.8rem' : '3.5rem',
     fontWeight: 'bold',
     color: '#fef08a',
     textShadow: '4px 4px 0px #86198f, 8px 8px 0px rgba(134, 25, 143, 0.3)',
-    marginBottom: '40px',
-    letterSpacing: '2px'
+    marginBottom: isMobile ? '15px' : '40px',
+    letterSpacing: isMobile ? '1px' : '2px',
+    lineHeight: isMobile ? '1.1' : '1'
   };
 
   const scoreContainerStyle = {
     backgroundColor: 'rgba(255, 255, 0, 0.1)',
     border: '4px solid #fef08a',
     borderRadius: '15px',
-    padding: '30px',
-    marginBottom: '40px',
+    padding: isMobile ? '12px' : '30px',
+    marginBottom: isMobile ? '15px' : '40px',
     boxShadow: '0 0 20px rgba(254, 240, 138, 0.3)'
   };
 
   const scoreStyle = {
-    fontSize: '4rem',
+    fontSize: isMobile ? '2rem' : '4rem',
     fontWeight: 'bold',
     color: '#fef08a',
     textShadow: '2px 2px 0px #86198f',
@@ -76,9 +79,9 @@ const FinalScore = ({ stats, onPlayAgain }) => {
 
   const statsGridStyle = {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '20px',
-    marginBottom: '40px'
+    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+    gap: isMobile ? '10px' : '20px',
+    marginBottom: isMobile ? '15px' : '40px'
   };
 
   const statCardStyle = (borderColor, bgColor, boxId) => {
@@ -87,7 +90,7 @@ const FinalScore = ({ stats, onPlayAgain }) => {
       backgroundColor: isHovered ? bgColor.replace('0.2', '0.4') : bgColor,
       border: `3px solid ${borderColor}`,
       borderRadius: '12px',
-      padding: '20px',
+      padding: isMobile ? '12px' : '20px',
       backdropFilter: 'blur(10px)',
       textAlign: 'center',
       cursor: 'pointer',
@@ -101,14 +104,14 @@ const FinalScore = ({ stats, onPlayAgain }) => {
   };
 
   const statValueStyle = {
-    fontSize: '2rem',
+    fontSize: isMobile ? '1.2rem' : '2rem',
     fontWeight: 'bold',
     fontFamily: "'Silkscreen', monospace",
-    marginTop: '10px'
+    marginTop: isMobile ? '6px' : '10px'
   };
 
   const statLabelStyle = {
-    fontSize: '1.2rem',
+    fontSize: isMobile ? '0.8rem' : '1.2rem',
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: '1px',
@@ -120,11 +123,11 @@ const FinalScore = ({ stats, onPlayAgain }) => {
     color: '#000000',
     border: '4px solid #000000',
     borderRadius: '15px',
-    padding: '20px 40px',
-    fontSize: '1.3rem',
+    padding: isMobile ? '12px 20px' : '20px 40px',
+    fontSize: isMobile ? '1rem' : '1.3rem',
     fontWeight: 'bold',
     textTransform: 'uppercase',
-    letterSpacing: '2px',
+    letterSpacing: isMobile ? '1px' : '2px',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     transform: hoveredButton ? 'translateY(-5px) scale(1.05)' : 'translateY(0) scale(1)',
@@ -133,17 +136,18 @@ const FinalScore = ({ stats, onPlayAgain }) => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '15px',
-    margin: '0 auto'
+    gap: isMobile ? '10px' : '15px',
+    margin: '0 auto',
+    minHeight: isMobile ? '50px' : '60px'
   };
 
   const performanceMessageStyle = (bgColor, borderColor, textColor) => ({
     backgroundColor: bgColor,
     border: `3px solid ${borderColor}`,
     borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '30px',
-    fontSize: '1.2rem',
+    padding: isMobile ? '15px' : '20px',
+    marginBottom: isMobile ? '20px' : '30px',
+    fontSize: isMobile ? '1rem' : '1.2rem',
     fontWeight: 'bold',
     color: textColor,
     fontFamily: "'Silkscreen', monospace"
@@ -219,7 +223,7 @@ const FinalScore = ({ stats, onPlayAgain }) => {
           <div style={{ color: '#00ffff', fontSize: '1.7rem', marginBottom: '15px', fontFamily: "'Silkscreen', monospace" }}>
             FINAL SCORE
           </div>
-          <div style={scoreStyle}>{stats.score.toLocaleString()}</div>
+          <div style={scoreStyle}>{(stats.score || 0).toLocaleString()}</div>
         </div>
 
         {/* Stats grid */}
@@ -322,14 +326,14 @@ const FinalScore = ({ stats, onPlayAgain }) => {
               backgroundColor: 'rgba(0, 0, 0, 0.95)',
               border: '3px solid #ffd700',
               borderRadius: '15px',
-              padding: '2rem',
-              maxWidth: '400px',
+              padding: isMobile ? '1.5rem' : '2rem',
+              maxWidth: isMobile ? '320px' : '400px',
               width: '90%',
               textAlign: 'center',
-            position: 'relative',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.3)',
-            fontFamily: "'Silkscreen', monospace",
-            animation: 'slideIn 0.5s ease-out'
+              position: 'relative',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.3)',
+              fontFamily: "'Silkscreen', monospace",
+              animation: 'slideIn 0.5s ease-out'
           }}>
             {/* Close button */}
             <button

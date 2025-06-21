@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { signInAnonymously, signInWithGoogle, getRedirectResult, createUserProfile } from '../firebase/firebase.js';
 import { auth } from '../firebase/firebase.js';
+import { useResponsive } from '../utils/responsive.js';
 
 const LandingPage = ({ onGetStarted }) => {
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const videoRef = useRef(null);
@@ -126,22 +128,23 @@ const LandingPage = ({ onGetStarted }) => {
     textAlign: 'center',
     color: '#ffffff',
     zIndex: 3, // Changed from 1 to 3 to be above overlay
-    maxWidth: '1000px',
-    padding: '40px',
+    maxWidth: isMobile ? '95%' : '1000px',
+    padding: isMobile ? '20px' : '40px',
     gap: '0',
   };
 
   const buttonContainerStyle = {
     display: 'flex',
-    flexDirection: 'row', // Side by side
-    gap: '20px',
+    flexDirection: isMobile ? 'column' : 'row', // Stack on mobile
+    gap: isMobile ? '15px' : '20px',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: '10px'
+    marginTop: '10px',
+    width: isMobile ? '100%' : 'auto'
   };
 
   const logoStyle = {
-    fontSize: '5rem',
+    fontSize: isMobile ? '3.5rem' : '5rem',
     fontWeight: 'bold',
     // Refined gradient for high contrast and impact
     background: 'linear-gradient(45deg, #FF4E00, #FFC837)',
@@ -150,29 +153,30 @@ const LandingPage = ({ onGetStarted }) => {
     WebkitTextFillColor: 'transparent',
     // Softer shadow for a cleaner "lift" off the page
     textShadow: '3px 3px 6px rgba(0, 0, 0, 0.6)',
-    marginBottom: '20px',
-    letterSpacing: '3px'
+    marginBottom: isMobile ? '15px' : '20px',
+    letterSpacing: isMobile ? '2px' : '3px',
+    lineHeight: isMobile ? '1.1' : '1'
   };
 
   const taglineStyle = {
-    fontSize: '1.5rem',
+    fontSize: isMobile ? '1.2rem' : '1.5rem',
     color: '#FFC837',
-    marginBottom: '40px',
+    marginBottom: isMobile ? '25px' : '40px',
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
     letterSpacing: '1px'
   };
 
   const descriptionStyle = {
-    fontSize: '1.1rem',
+    fontSize: isMobile ? '1rem' : '1.1rem',
     color: '#B0C4DE',
-    marginBottom: '50px',
+    marginBottom: isMobile ? '30px' : '50px',
     lineHeight: '1.6',
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
   };
 
   const buttonStyle = {
-    padding: '18px 40px',
-    fontSize: '1.2rem',
+    padding: isMobile ? '15px 25px' : '18px 40px',
+    fontSize: isMobile ? '1rem' : '1.2rem',
     fontWeight: 'bold',
     border: 'none',
     borderRadius: '12px',
