@@ -49,166 +49,384 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
       }
       loadMoreQuestions();
     }
-  }, [questionNumber, questions.length, categoryKey, usedQuestionIds]);
+  }, [questionNumber, categoryKey, questions.length, usedQuestionIds]);
+
+  if (isLoading || !currentQuestion) {
+    return (
+      <div style={{minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontSize: '1.5rem'}}>
+        Loading Quiz...
+      </div>
+    );
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!userInput.trim() || !currentQuestion) return;
-    const correctAnswer = currentQuestion.answer;
-    const isCorrect = userInput.trim().toLowerCase() === correctAnswer.toLowerCase();
+    if (!userInput.trim() || answerStatus) return;
+
+    const userAnswer = userInput.trim().toLowerCase();
+    const correctAnswer = currentQuestion.answer.toLowerCase();
+    const isCorrect = userAnswer === correctAnswer;
+
     if (isCorrect) {
-      setAnswerStatus("correct");
-      setScore((s) => s + 100);
-      setStats((s) => ({ ...s, correct: s.correct + 1 }));
+      setScore(prev => prev + 1);
+      setStats(prev => ({ ...prev, correct: prev.correct + 1 }));
+      setAnswerStatus('correct');
     } else {
-      setAnswerStatus("incorrect");
-      setStats((s) => ({ ...s, incorrect: s.incorrect + 1 }));
+      setStats(prev => ({ ...prev, incorrect: prev.incorrect + 1 }));
+      setAnswerStatus('incorrect');
     }
+
+    // Auto-advance after 2 seconds
+    setTimeout(() => {
+      handleNextQuestion();
+    }, 2000);
   };
 
   const handleNextQuestion = () => {
-    setAnswerStatus(null);
-    setUserInput("");
-    setShowHint(false);
-    // Find the next unused question
-    const currentIdx = questions.findIndex(q => q.id === currentQuestion.id);
-    let nextIdx = currentIdx + 1;
-    if (nextIdx < questions.length) {
-      setCurrentQuestion(questions[nextIdx]);
+    if (questionNumber >= 10) {
+      handleFinishQuiz();
+      return;
+    }
+
+    const nextQuestion = questions[questionNumber];
+    if (nextQuestion) {
+      setCurrentQuestion(nextQuestion);
       setQuestionNumber(prev => prev + 1);
+      setUserInput("");
+      setAnswerStatus(null);
+      setShowHint(false);
+      
+      // Focus input for next question
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
     } else {
-      // No more questions, finish quiz
       handleFinishQuiz();
     }
   };
 
   const handleFinishQuiz = async () => {
-    const quizData = {
-      category: categoryKey,
-      score,
-      correct: stats.correct,
-      incorrect: stats.incorrect,
+    const finalStats = {
+      correct: stats.correct + (answerStatus === 'correct' ? 1 : 0),
+      incorrect: stats.incorrect + (answerStatus === 'incorrect' ? 1 : 0),
       hints: stats.hints,
-      questionsAnswered: stats.correct + stats.incorrect
+      score: score + (answerStatus === 'correct' ? 10 : 0)
     };
-    if (user && user.uid) {
+
+    if (user) {
       try {
-        await saveQuizResult(user.uid, quizData);
+        await saveQuizResult(user.uid, {
+          category: categoryKey,
+          score: score,
+          stats: finalStats,
+          timestamp: new Date()
+        });
       } catch (error) {
-        console.error("Error saving quiz result:", error);
+        console.error('Error saving quiz result:', error);
       }
     }
-    onQuizComplete(quizData);
+
+    onQuizComplete(finalStats);
   };
 
-  if (isLoading || !currentQuestion) {
-    return (
-      <div style={{ minHeight: '100vh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
-        <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)', border: '4px solid #00ffff', borderRadius: '20px', padding: '40px', textAlign: 'center', color: '#ffffff', fontFamily: "'Silkscreen', monospace" }}>
-          <div style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Loading Questions...</div>
-          <div style={{ borderRadius: '50%', width: '40px', height: '40px', border: '4px solid #00ffff', borderTopColor: 'transparent', margin: '0 auto', animation: 'spin 1s linear infinite' }}></div>
-        </div>
-      </div>
-    );
-  }
-
+  // --- Responsive helper ---
+  const isMobile = window.innerWidth <= 768;
+  
   // --- Style definitions ---
-  const cardStyle = { backgroundColor: 'rgba(0, 0, 0, 0.9)', border: '4px solid #00ffff', borderRadius: '20px', padding: '40px 30px', maxWidth: '700px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 255, 0.3)', backdropFilter: 'blur(15px)', position: 'relative', fontFamily: "'Silkscreen', monospace" };
-  const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '3px solid #00ffff', paddingBottom: '20px' };
-  const scoreStyle = { textAlign: 'center' };
-  const scoreLabelStyle = { fontSize: '0.8rem', color: '#00ffff', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '5px' };
-  const scoreValueStyle = { fontSize: '2rem', fontWeight: 'bold', color: '#fef08a', textShadow: '2px 2px 0px #86198f' };
-  const questionStyle = { backgroundColor: 'rgba(0, 0, 0, 0.7)', border: '3px solid rgba(255, 255, 255, 0.3)', borderRadius: '15px', padding: '30px', marginBottom: '30px', fontSize: '1.4rem', color: '#ffffff', lineHeight: '1.6', backdropFilter: 'blur(10px)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+  const cardStyle = { 
+    backgroundColor: 'rgba(0, 0, 0, 0.9)', 
+    border: '4px solid #00ffff', 
+    borderRadius: isMobile ? '10px' : '20px', 
+    padding: isMobile ? '12px 10px' : '40px 30px', 
+    maxWidth: isMobile ? '95%' : '700px', 
+    width: '100%', 
+    textAlign: 'center', 
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 255, 0.3)', 
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    position: 'relative', 
+    fontFamily: "'Silkscreen', monospace",
+    margin: isMobile ? '5px' : '0'
+  };
+  
+  const headerStyle = { 
+    display: 'flex', 
+    justifyContent: isMobile ? 'center' : 'space-between', 
+    alignItems: 'center', 
+    marginBottom: isMobile ? '12px' : '30px', 
+    borderBottom: '3px solid #00ffff', 
+    paddingBottom: isMobile ? '10px' : '20px',
+    flexDirection: isMobile ? 'column' : 'row',
+    gap: isMobile ? '10px' : '0'
+  };
+  
+  const scoreLabelStyle = { 
+    fontSize: isMobile ? '0.6rem' : '0.8rem', 
+    color: '#00ffff', 
+    textTransform: 'uppercase', 
+    letterSpacing: '1px', 
+    marginBottom: isMobile ? '0' : '5px' 
+  };
+  
+  const scoreValueStyle = { 
+    fontSize: isMobile ? '1rem' : '2rem', 
+    fontWeight: 'bold', 
+    color: '#fef08a', 
+    textShadow: '2px 2px 0px #86198f' 
+  };
+  
+  const questionStyle = { 
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+    border: '3px solid rgba(255, 255, 255, 0.3)', 
+    borderRadius: '15px', 
+    padding: isMobile ? '12px 10px' : '30px', 
+    marginBottom: isMobile ? '12px' : '30px', 
+    fontSize: isMobile ? '0.95rem' : '1.4rem', 
+    color: '#ffffff', 
+    lineHeight: '1.6', 
+    backdropFilter: 'blur(10px)', 
+    minHeight: isMobile ? '60px' : '120px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  };
+
   const inputStyle = { 
     width: '100%', 
-    padding: '20px', 
-    fontSize: '1.3rem', 
+    padding: isMobile ? '10px' : '20px', 
+    fontSize: isMobile ? '0.9rem' : '1.3rem', 
     textAlign: 'center', 
     border: '4px solid #ffffff', 
     borderRadius: '12px', 
-    marginBottom: '20px', 
+    marginBottom: isMobile ? '10px' : '20px', 
     fontFamily: "'Silkscreen', monospace", 
     backgroundColor: answerStatus === 'correct' ? '#10b981' : answerStatus === 'incorrect' ? '#ef4444' : '#ffffff', 
     color: answerStatus ? '#ffffff' : '#000000', 
     transition: 'all 0.3s ease', 
     outline: 'none',
-    WebkitAppearance: 'none', // Remove iOS styling
-    WebkitBorderRadius: '12px', // Ensure border radius on iOS
-    touchAction: 'manipulation', // Prevent zoom on mobile
-    minHeight: '60px', // Ensure touch target is large enough
-    boxSizing: 'border-box' // Include padding in width calculation
+    WebkitAppearance: 'none',
+    WebkitBorderRadius: '12px',
+    touchAction: 'manipulation',
+    minHeight: isMobile ? '40px' : '60px',
+    boxSizing: 'border-box'
   };
-  const buttonStyle = { backgroundColor: '#ffd700', color: '#000000', border: '4px solid #000000', borderRadius: '12px', padding: '15px 30px', fontSize: '1.1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', transition: 'all 0.3s ease', fontFamily: "'Silkscreen', monospace", width: '100%', marginBottom: '15px', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.3)' };
-  const hintButtonStyle = { ...buttonStyle, backgroundColor: '#f59e0b', width: 'auto', flexGrow: 1, marginRight: '15px', marginBottom: '0' };
-  const nextButtonStyle = { ...buttonStyle, backgroundColor: '#8b5cf6', width: 'auto', flexGrow: 1, marginBottom: '0' };
-  const finishButtonStyle = { backgroundColor: '#dc2626', color: '#ffffff', border: '3px solid #991b1b', borderRadius: '10px', padding: '15px 25px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s ease', fontFamily: "'Silkscreen', monospace", textTransform: 'uppercase', letterSpacing: '1px', flexGrow: 1};
-  const hintStyle = { backgroundColor: 'rgba(245, 158, 11, 0.2)', border: '3px solid #f59e0b', borderRadius: '15px', padding: '25px', marginTop: '25px', color: '#fbbf24', fontSize: '1.1rem', lineHeight: '1.5' };
-  const answerDisplayStyle = { backgroundColor: 'rgba(16, 185, 129, 0.2)', border: '3px solid #10b981', borderRadius: '15px', padding: '20px', marginBottom: '20px', color: '#ffffff' };
-  const middleSectionStyle = { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '0 30px' };
-  const categoryDisplayStyle = { fontSize: '1.8rem', fontWeight: 'bold', color: '#00ffff', textShadow: '2px 2px 0px #000000', marginBottom: '8px', textAlign: 'center', letterSpacing: '1px' };
 
+  const buttonStyle = { 
+    backgroundColor: '#ffd700', 
+    color: '#000000', 
+    border: '4px solid #000000', 
+    borderRadius: '12px', 
+    padding: isMobile ? '8px 12px' : '12px 25px', 
+    fontSize: isMobile ? '0.75rem' : '1rem', 
+    fontWeight: 'bold', 
+    textTransform: 'uppercase', 
+    letterSpacing: '1px', 
+    cursor: 'pointer', 
+    transition: 'all 0.3s ease', 
+    fontFamily: "'Silkscreen', monospace", 
+    boxShadow: '0 6px 15px rgba(0, 0, 0, 0.3)',
+    minHeight: isMobile ? '36px' : '45px',
+    flex: isMobile ? '1' : '1'
+  };
+
+  const hintButtonStyle = { 
+    ...buttonStyle, 
+    backgroundColor: '#f59e0b',
+    marginRight: isMobile ? '6px' : '0',
+    marginLeft: isMobile ? '0' : '15px'
+  };
+
+  const nextButtonStyle = { 
+    ...buttonStyle, 
+    backgroundColor: '#8b5cf6',
+    flex: 'none',
+    width: isMobile ? '100%' : 'auto'
+  };
+
+  const finishButtonStyle = { 
+    backgroundColor: '#dc2626', 
+    color: '#ffffff', 
+    border: '3px solid #991b1b', 
+    borderRadius: '10px', 
+    padding: isMobile ? '8px 12px' : '12px 30px', 
+    fontSize: isMobile ? '0.7rem' : '1rem', 
+    fontWeight: 'bold', 
+    cursor: 'pointer', 
+    transition: 'all 0.3s ease', 
+    fontFamily: "'Silkscreen', monospace", 
+    textTransform: 'uppercase', 
+    letterSpacing: '1px',
+    minHeight: isMobile ? '36px' : '45px',
+    width: isMobile ? '100%' : 'auto',
+    marginTop: isMobile ? '6px' : '15px'
+  };
+
+  const hintStyle = { 
+    backgroundColor: 'rgba(245, 158, 11, 0.2)', 
+    border: '3px solid #f59e0b', 
+    borderRadius: '15px', 
+    padding: isMobile ? '15px' : '25px', 
+    marginTop: isMobile ? '15px' : '25px', 
+    color: '#fbbf24', 
+    fontSize: isMobile ? '0.9rem' : '1.1rem', 
+    lineHeight: '1.5' 
+  };
+
+  const answerDisplayStyle = { 
+    backgroundColor: 'rgba(16, 185, 129, 0.2)', 
+    border: '3px solid #10b981', 
+    borderRadius: '15px', 
+    padding: isMobile ? '15px' : '20px', 
+    marginBottom: isMobile ? '15px' : '20px', 
+    color: '#ffffff' 
+  };
+
+  const categoryDisplayStyle = { 
+    fontSize: isMobile ? '1.3rem' : '1.8rem', 
+    fontWeight: 'bold', 
+    color: '#00ffff', 
+    textShadow: '2px 2px 0px #000000', 
+    marginBottom: '8px', 
+    textAlign: 'center', 
+    letterSpacing: '1px' 
+  };
 
   return (
-    <div style={{minHeight: '100vh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'}}>
+    <div style={{
+      minHeight: '100vh', 
+      width: '100%', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: isMobile ? '5px' : '20px',
+      backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed'
+    }}>
       <div style={cardStyle}>
         {/* Header */}
         <div style={headerStyle}>
-            <div style={scoreStyle}><div style={scoreLabelStyle}>Score</div><div style={scoreValueStyle}>{score}</div></div>
-            <div style={middleSectionStyle}><div style={categoryDisplayStyle}>{sportsConfig[categoryKey]?.name?.toUpperCase() || categoryKey.toUpperCase().replace('_', ' ')} 🏆</div></div>
-            <div style={scoreStyle}><div style={scoreLabelStyle}>Answered</div><div style={scoreValueStyle}>{stats.correct + stats.incorrect}</div></div>
+          {isMobile ? (
+            <>
+              <div style={categoryDisplayStyle}>
+                {sportsConfig[categoryKey]?.name?.toUpperCase() || categoryKey.toUpperCase().replace('_', ' ')} 🏆
+              </div>
+              <div style={{display: 'flex', gap: '20px', justifyContent: 'center', alignItems: 'center'}}>
+                <div style={{textAlign: 'center'}}>
+                  <div style={scoreLabelStyle}>Score</div>
+                  <div style={scoreValueStyle}>{score}</div>
+                </div>
+                <div style={{textAlign: 'center'}}>
+                  <div style={scoreLabelStyle}>Answered</div>
+                  <div style={scoreValueStyle}>{stats.correct + stats.incorrect}</div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{textAlign: 'center'}}>
+                <div style={scoreLabelStyle}>Score</div>
+                <div style={scoreValueStyle}>{score}</div>
+              </div>
+              <div style={categoryDisplayStyle}>
+                {sportsConfig[categoryKey]?.name?.toUpperCase() || categoryKey.toUpperCase().replace('_', ' ')} 🏆
+              </div>
+              <div style={{textAlign: 'center'}}>
+                <div style={scoreLabelStyle}>Answered</div>
+                <div style={scoreValueStyle}>{stats.correct + stats.incorrect}</div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Question */}
         <div style={questionStyle}>{currentQuestion.question}</div>
 
-        {/* Answer Form */}
-        <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
-          <input 
-            ref={inputRef}
-            type="text" 
-            value={userInput} 
-            onChange={(e) => setUserInput(e.target.value)} 
-            disabled={!!answerStatus} 
-            style={inputStyle} 
-            placeholder="Type your answer..."
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck="false"
-            inputMode="text"
-            enterKeyHint="done"
-          />
-          {!answerStatus && (<button type="submit" style={buttonStyle}>⚡ SUBMIT ANSWER ⚡</button>)}
-        </form>
+        {/* Answer Form and Buttons Container */}
+        <div>
+          {/* Answer Form */}
+          <form onSubmit={handleSubmit} style={{ marginBottom: isMobile ? '15px' : '20px' }}>
+            <input 
+              ref={inputRef}
+              type="text" 
+              value={userInput} 
+              onChange={(e) => setUserInput(e.target.value)} 
+              disabled={!!answerStatus} 
+              style={inputStyle} 
+              placeholder="Type your answer..."
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              inputMode="text"
+              enterKeyHint="done"
+            />
+            
+            {/* Submit and Hint buttons side by side on mobile */}
+            {!answerStatus && (
+              <div style={{ 
+                display: 'flex', 
+                gap: isMobile ? '10px' : '15px', 
+                marginBottom: isMobile ? '10px' : '0'
+              }}>
+                <button type="submit" style={buttonStyle}>
+                  ⚡ SUBMIT ANSWER ⚡
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => { 
+                    setShowHint(true); 
+                    setStats((s) => ({ ...s, hints: s.hints + 1 })); 
+                  }} 
+                  style={hintButtonStyle}
+                >
+                  💡 HINT
+                </button>
+              </div>
+            )}
+          </form>
 
-        {/* Answer Status */}
-        {answerStatus && (
-          <div style={answerDisplayStyle}>
-            <div style={{ fontSize: '1.2rem', marginBottom: '10px', fontWeight: 'bold' }}>{answerStatus === 'correct' ? '✓ CORRECT!' : '✗ INCORRECT'}</div>
-            <div><strong>Correct Answer: {currentQuestion.answer}</strong></div>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          {!answerStatus && (
-            <button onClick={() => { setShowHint(true); setStats((s) => ({ ...s, hints: s.hints + 1 })); }} style={hintButtonStyle}>💡 GET HINT</button>
-          )}
-          
+          {/* Answer Status */}
           {answerStatus && (
-            <button onClick={handleNextQuestion} style={nextButtonStyle}>NEXT →</button>
+            <div style={answerDisplayStyle}>
+              <div style={{ fontSize: isMobile ? '1rem' : '1.2rem', marginBottom: '10px', fontWeight: 'bold' }}>
+                {answerStatus === 'correct' ? '✓ CORRECT!' : '✗ INCORRECT'}
+              </div>
+              <div><strong>Correct Answer: {currentQuestion.answer}</strong></div>
+            </div>
           )}
-          
-          <button onClick={handleFinishQuiz} style={finishButtonStyle}>🏁 FINISH</button>
-        </div>
 
-        {/* Hint Display */}
-        {showHint && !answerStatus && (
-          <div style={hintStyle}>
-            <div style={{ fontSize: '1.1rem', marginBottom: '10px', fontWeight: 'bold' }}>💡 Hint:</div>
-            {currentQuestion.hint}
+          {/* Action Buttons */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? '10px' : '15px', 
+            justifyContent: 'center' 
+          }}>
+            {answerStatus && (
+              <button onClick={handleNextQuestion} style={nextButtonStyle}>
+                NEXT →
+              </button>
+            )}
+            
+            <button onClick={handleFinishQuiz} style={finishButtonStyle}>
+              🏁 FINISH
+            </button>
           </div>
-        )}
+
+          {/* Hint Display */}
+          {showHint && !answerStatus && (
+            <div style={hintStyle}>
+              <div style={{ fontSize: isMobile ? '0.9rem' : '1.1rem', marginBottom: '10px', fontWeight: 'bold' }}>
+                💡 Hint:
+              </div>
+              {currentQuestion.hint}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

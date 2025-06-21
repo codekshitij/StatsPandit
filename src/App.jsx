@@ -55,11 +55,7 @@ const CategoriesRoute = ({ user }) => {
     navigate(`/quiz?category=${categoryKey}`);
   };
   
-  const handleGoHome = () => {
-    navigate('/');
-  };
-  
-  return <CategorySelection onSelectCategory={handleSelectCategory} onGoHome={handleGoHome} user={user} />;
+  return <CategorySelection onSelectCategory={handleSelectCategory} user={user} />;
 };
 
 const QuizRoute = ({ user }) => {
@@ -128,17 +124,35 @@ const BackgroundWrapper = ({ children }) => {
   const isLandingPage = location.pathname === '/';
   const backgroundImage = backgroundImages[location.pathname];
 
+  const isMobile = window.innerWidth <= 768;
+  
   const appStyle = {
     backgroundImage: !isLandingPage && backgroundImage ? `url(${backgroundImage})` : 'none',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
+    backgroundAttachment: isMobile ? 'scroll' : 'fixed', // Use scroll on mobile for better performance
+    backgroundRepeat: 'no-repeat',
     minHeight: '100vh',
     width: '100vw',
+    position: 'relative'
   };
 
   return (
     <div className="flex flex-col min-h-screen w-full" style={appStyle}>
+      {/* Background overlay for better readability */}
+      {!isLandingPage && backgroundImage && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            zIndex: -1
+          }}
+        />
+      )}
       <div className="flex-1 flex items-center justify-center p-4 pb-24">
         <div className="w-full max-w-4xl mx-auto">
           {children}

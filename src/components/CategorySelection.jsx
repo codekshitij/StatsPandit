@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Leaderboard from './Leaderboard.jsx';
 import AuthModal from './auth/AuthModal.jsx';
 import UserProfile from './auth/UserProfile.jsx';
+import { useResponsive } from '../utils/responsive.js';
 
 const localQuizData = {
   cricket: { name: "Cricket", icon: "🏏" },
@@ -12,7 +13,8 @@ const localQuizData = {
   nba: { name: "NBA", icon: "🏀", comingSoon: true },
 };
 
-const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
+const CategorySelection = ({ onSelectCategory, user }) => {
+  const { isMobile } = useResponsive();
   const [hoveredCard, setHoveredCard] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -25,25 +27,26 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    padding: '40px',
-    gap: '20px',
-    paddingTop: '60px',
+    padding: isMobile ? '10px 8px' : '40px',
+    gap: isMobile ? '10px' : '20px',
+    paddingTop: isMobile ? '25px' : '60px',
     position: 'relative'
   };
 
   const topRowStyle = {
     display: 'flex',
-    flexDirection: 'row',
+    flexDirection: isMobile ? 'column' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '30px'
+    gap: isMobile ? '12px' : '30px',
+    width: '100%'
   };
 
   const cardStyle = {
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
     border: '4px solid #00ffff',
-    borderRadius: '20px',
-    padding: '40px 30px',
+    borderRadius: isMobile ? '10px' : '20px',
+    padding: isMobile ? '15px 12px' : '40px 30px',
     textAlign: 'center',
     boxShadow: '0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 255, 0.3)',
     backdropFilter: 'blur(15px)',
@@ -53,14 +56,14 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
 
   const sportsCardStyle = {
     ...cardStyle,
-    maxWidth: '600px',
+    maxWidth: isMobile ? '100%' : '600px',
     width: '100%',
-    minHeight: '665px'
+    minHeight: isMobile ? 'auto' : '665px'
   };
 
   const profileCardStyle = {
     ...cardStyle,
-    maxWidth: '420px',
+    maxWidth: isMobile ? '100%' : '420px',
     width: '100%',
     height: 'fit-content',
     border: '4px solid #22c55e',
@@ -69,7 +72,7 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
   const challengeCardStyle = {
     ...cardStyle,
     border: '4px solid #ef4444',
-    maxWidth: '420px',
+    maxWidth: isMobile ? '100%' : '420px',
     width: '100%',
     height: 'fit-content'
   };
@@ -77,39 +80,40 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
   const rightColumnStyle = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: isMobile ? '15px' : '20px',
     alignItems: 'center',
-    justifyContent: 'flex-start'
+    justifyContent: 'flex-start',
+    width: isMobile ? '100%' : 'auto'
   };
 
   const storyCardStyle = {
     ...cardStyle,
     border: '4px solid #9333ea',
-    maxWidth: '1050px',
+    maxWidth: isMobile ? '100%' : '1050px',
     width: '100%',
     height: 'fit-content',
     textAlign: 'left'
   };
 
   const titleStyle = {
-    fontSize: '2.5rem',
+    fontSize: isMobile ? '1.6rem' : '2.5rem',
     fontWeight: 'bold',
     color: '#fef08a',
     textShadow: '3px 3px 0px #86198f',
-    marginBottom: '30px',
-    letterSpacing: '2px'
+    marginBottom: isMobile ? '12px' : '30px',
+    letterSpacing: isMobile ? '1px' : '2px'
   };
 
   const categoryButtonStyle = (isHovered) => ({
     backgroundColor: isHovered ? 'rgba(0, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
     border: `3px solid ${isHovered ? '#00ffff' : '#ffffff'}`,
     borderRadius: '15px',
-    padding: '20px 15px',
-    margin: '8px',
-    width: '180px',
-    height: '150px',
+    padding: isMobile ? '10px 6px' : '20px 15px',
+    margin: isMobile ? '3px' : '8px',
+    width: isMobile ? '120px' : '180px',
+    height: isMobile ? '100px' : '150px',
     color: '#ffffff',
-    fontSize: '1.1rem',
+    fontSize: isMobile ? '0.9rem' : '1.1rem',
     fontFamily: "'Silkscreen', monospace",
     cursor: 'pointer',
     transition: 'all 0.3s ease',
@@ -117,7 +121,7 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '8px',
+    gap: isMobile ? '5px' : '8px',
     transform: isHovered ? 'translateY(-5px) scale(1.05)' : 'translateY(0) scale(1)',
     boxShadow: isHovered ? '0 10px 25px rgba(0, 255, 255, 0.4)' : '0 4px 10px rgba(0, 0, 0, 0.3)'
   });
@@ -136,38 +140,6 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
 
   return (
     <div style={containerStyle}>
-      {/* Home Button */}
-      {onGoHome && (
-        <button
-          onClick={onGoHome}
-          style={{
-            position: 'absolute',
-            top: '20px',
-            left: '20px',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            border: '2px solid #00ffff',
-            borderRadius: '10px',
-            color: '#00ffff',
-            padding: '10px 20px',
-            fontSize: '1rem',
-            fontFamily: "'Silkscreen', monospace",
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            zIndex: 1000
-          }}
-          onMouseOver={(e) => {
-            e.target.style.backgroundColor = 'rgba(0, 255, 255, 0.2)';
-            e.target.style.transform = 'scale(1.05)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-            e.target.style.transform = 'scale(1)';
-          }}
-        >
-          🏠 HOME
-        </button>
-      )}
-      
       {/* Top Row - Sports and Profile Cards */}
       <div style={topRowStyle}>
         {/* Sports Selection Card */}
@@ -212,9 +184,15 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
 
         <h1 style={titleStyle}>SELECT SPORT</h1>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '15px' : '20px' }}>
           {/* First row - 3 categories */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', margin:'10px' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: isMobile ? '8px' : '5px', 
+            margin: isMobile ? '5px' : '10px',
+            flexWrap: isMobile ? 'wrap' : 'nowrap'
+          }}>
             {Object.entries(localQuizData).slice(0, 3).map(([key, category]) => (
               <button
                 key={key}
@@ -236,7 +214,13 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
           </div>
           
           {/* Second row - 3 categories */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', margin:'10px' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: isMobile ? '8px' : '5px', 
+            margin: isMobile ? '5px' : '10px',
+            flexWrap: isMobile ? 'wrap' : 'nowrap'
+          }}>
             {Object.entries(localQuizData).slice(3, 6).map(([key, category]) => (
               <button
                 key={key}
@@ -523,10 +507,10 @@ const CategorySelection = ({ onSelectCategory, onGoHome, user }) => {
         
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: '1fr 1fr', 
-          gap: '30px', 
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+          gap: isMobile ? '20px' : '30px', 
           alignItems: 'start',
-          fontSize: '1rem',
+          fontSize: isMobile ? '0.9rem' : '1rem',
           lineHeight: '1.6',
           color: '#ffffff'
         }}>
