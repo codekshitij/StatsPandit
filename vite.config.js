@@ -6,10 +6,6 @@ export default defineConfig(() => ({
   base: '/', // Use root path for all deployments
   plugins: [react()],
   server: {
-    headers: {
-      'Cross-Origin-Opener-Policy': 'unsafe-none',
-      'Cross-Origin-Embedder-Policy': 'unsafe-none'
-    },
     historyApiFallback: true
   },
   esbuild: {
