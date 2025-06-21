@@ -76,6 +76,7 @@ const QuizRoute = ({ user }) => {
       score: stats.score,
       correct: stats.correct,
       incorrect: stats.incorrect,
+      hints: stats.hints,
       category: stats.category
     });
     navigate(`/score?${params.toString()}`);
@@ -91,6 +92,7 @@ const ScoreRoute = ({ user }) => {
   const score = searchParams.get('score');
   const correct = searchParams.get('correct');
   const incorrect = searchParams.get('incorrect');
+  const hints = searchParams.get('hints');
   const category = searchParams.get('category');
   
   if (!score || !correct || !incorrect || !category) {
@@ -101,6 +103,7 @@ const ScoreRoute = ({ user }) => {
     score: parseInt(score),
     correct: parseInt(correct),
     incorrect: parseInt(incorrect),
+    hints: parseInt(hints) || 0,
     category
   };
   
