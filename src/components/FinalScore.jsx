@@ -1,10 +1,29 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { SiCashapp } from 'react-icons/si';
 
 const FinalScore = ({ stats, onPlayAgain }) => {
-  const [hoveredButton, setHoveredButton] = React.useState(false);
-  const [hoveredStatBox, setHoveredStatBox] = React.useState(null);
+  const [hoveredButton, setHoveredButton] = useState(false);
+  const [hoveredStatBox, setHoveredStatBox] = useState(null);
+  const [showCoffeeModal, setShowCoffeeModal] = useState(false);
+  
   const totalAnswered = stats.correct + stats.incorrect;
   const accuracy = totalAnswered > 0 ? Math.round((stats.correct / totalAnswered) * 100) : 0;
+
+  // Show coffee modal after 2 seconds, hide after 15 seconds
+  useEffect(() => {
+    const showTimer = setTimeout(() => {
+      setShowCoffeeModal(true);
+    }, 2000);
+
+    const hideTimer = setTimeout(() => {
+      setShowCoffeeModal(false);
+    }, 17000); // 2 + 15 seconds
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
 
   const containerStyle = {
     minHeight: '100vh',
@@ -275,6 +294,182 @@ const FinalScore = ({ stats, onPlayAgain }) => {
           <span>🎮</span>
         </button>
       </div>
+
+      {/* Coffee Modal */}
+      {showCoffeeModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            animation: 'fadeIn 0.5s ease-in-out'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowCoffeeModal(false);
+            }
+          }}
+        >
+          <div 
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.95)',
+              border: '3px solid #ffd700',
+              borderRadius: '15px',
+              padding: '2rem',
+              maxWidth: '400px',
+              width: '90%',
+              textAlign: 'center',
+            position: 'relative',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.3)',
+            fontFamily: "'Silkscreen', monospace",
+            animation: 'slideIn 0.5s ease-out'
+          }}>
+            {/* Close button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCoffeeModal(false);
+              }}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '15px',
+                background: 'none',
+                border: 'none',
+                color: '#ffd700',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                lineHeight: 1,
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.color = '#fff';
+                e.target.style.transform = 'scale(1.1)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.color = '#ffd700';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              ×
+            </button>
+
+            {/* Shimmer effect */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent)',
+              animation: 'shimmer 3s ease-in-out infinite',
+              borderRadius: '15px'
+            }}></div>
+            
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1.2rem',
+                color: '#ffd700',
+                fontWeight: 'bold',
+                marginBottom: '1rem',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)'
+              }}>
+                🎉 Great Job! ☕
+              </h3>
+              
+              <p style={{
+                margin: 0,
+                fontSize: '0.9rem',
+                color: '#cbd5e0',
+                marginBottom: '1.5rem',
+                lineHeight: 1.5
+              }}>
+                Enjoyed the quiz? Support the development of more awesome quizzes!
+              </p>
+              
+              <a 
+                href="https://cash.app/$kshitij27" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1.5rem',
+                  background: 'linear-gradient(45deg, #ffd700, #ffed4e)',
+                  color: '#000',
+                  textDecoration: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem',
+                  transition: 'all 0.3s ease',
+                  border: '2px solid #ffd700'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.boxShadow = '0 5px 15px rgba(255, 215, 0, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <SiCashapp style={{ fontSize: '1.2rem', color: '#000' }} />
+                <span>Buy me a coffee</span>
+              </a>
+              
+              <p style={{
+                margin: 0,
+                fontSize: '0.7rem',
+                color: '#9ca3af',
+                marginTop: '1rem'
+              }}>
+                This modal will close automatically in a few seconds
+              </p>
+            </div>
+
+            {/* Animation styles */}
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              
+              @keyframes slideIn {
+                from { 
+                  transform: translateY(-50px) scale(0.9); 
+                  opacity: 0; 
+                }
+                to { 
+                  transform: translateY(0) scale(1); 
+                  opacity: 1; 
+                }
+              }
+              
+              @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                50% { transform: translateX(100%); }
+                100% { transform: translateX(100%); }
+              }
+            `}</style>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

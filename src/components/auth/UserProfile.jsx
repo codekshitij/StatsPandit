@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { signOut, getUserQuizHistory, getUserProfile, auth } from '../../firebase/firebase.js';
+import { getTitleByScore, getNextTitle, getTitleProgress } from '../../utils/titleSystem.js';
 
 const UserProfile = ({ user, onClose }) => {
   const [userHistory, setUserHistory] = useState([]);
@@ -167,6 +168,82 @@ const UserProfile = ({ user, onClose }) => {
             )}
           </div>
         </div>
+
+        {/* User Title Section */}
+        {!isAnonymous && userProfile && (
+          <div style={{
+            marginTop: '20px',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            border: '3px solid #ffd700',
+            borderRadius: '15px',
+            padding: '20px',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ color: '#ffd700', marginBottom: '15px', fontSize: '1.2rem' }}>
+              🏆 YOUR PANDIT TITLE
+            </h3>
+            
+            {(() => {
+              const totalCorrect = userProfile.totalCorrectAnswers || 0;
+              const currentTitle = getTitleByScore(totalCorrect);
+              const nextTitle = getNextTitle(totalCorrect);
+              const progress = getTitleProgress(totalCorrect);
+              
+              return (
+                <div>
+                  {/* Current Title */}
+                  <div style={{
+                    backgroundColor: currentTitle.bgColor,
+                    border: `2px solid ${currentTitle.borderColor}`,
+                    borderRadius: '10px',
+                    padding: '15px',
+                    marginBottom: '15px'
+                  }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '5px' }}>
+                      {currentTitle.badge} <span style={{ color: currentTitle.textColor, fontWeight: 'bold' }}>
+                        {currentTitle.title}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: '#cccccc' }}>
+                      {currentTitle.description}
+                    </div>
+                  </div>
+                  
+                  {/* Progress Info */}
+                  <div style={{ fontSize: '1rem', color: '#ffffff', marginBottom: '10px' }}>
+                    📊 Total Correct Answers: <span style={{ color: '#fef08a', fontWeight: 'bold' }}>{totalCorrect}</span>
+                  </div>
+                  
+                  {/* Next Title Preview */}
+                  {nextTitle && (
+                    <div style={{ fontSize: '0.9rem', color: '#cccccc' }}>
+                      🎯 Next Title: <span style={{ color: nextTitle.textColor }}>{nextTitle.title}</span>
+                      <br />
+                      ({progress.answersNeeded} more correct answers needed)
+                    </div>
+                  )}
+                  
+                  {/* Progress Bar */}
+                  <div style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    height: '8px',
+                    marginTop: '15px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      backgroundColor: currentTitle.color,
+                      height: '100%',
+                      width: `${Math.min(progress.progress || 0, 100)}%`,
+                      borderRadius: '10px',
+                      transition: 'width 0.3s ease'
+                    }}></div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
 
         <div style={historyStyle}>
           <h3 style={{ color: '#00ffff', marginBottom: '15px' }}>📊 Quiz History</h3>

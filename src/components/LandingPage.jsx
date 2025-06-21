@@ -95,6 +95,7 @@ const LandingPage = ({ onGetStarted }) => {
     justifyContent: 'center',
     overflow: 'hidden',
     fontFamily: "'Silkscreen', monospace"
+    // Removed backgroundColor - let video show through
   };
 
   const videoStyle = {
@@ -104,7 +105,7 @@ const LandingPage = ({ onGetStarted }) => {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    zIndex: -2
+    zIndex: 1 // Changed from -2 to 1 to be visible
   };
 
   const overlayStyle = {
@@ -114,32 +115,48 @@ const LandingPage = ({ onGetStarted }) => {
     width: '100%',
     height: '100%',
     background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5))',
-    zIndex: -1
+    zIndex: 2 // Changed from -1 to 2 to be above video
   };
 
   const contentStyle = {
+    display: 'flex',
+    flexDirection: 'column', // Stack vertically
+    justifyContent: 'center',
+    alignItems: 'center',
     textAlign: 'center',
     color: '#ffffff',
-    zIndex: 1,
-    maxWidth: '600px',
-    padding: '40px'
+    zIndex: 3, // Changed from 1 to 3 to be above overlay
+    maxWidth: '1000px',
+    padding: '40px',
+    gap: '0',
+  };
+
+  const buttonContainerStyle = {
+    display: 'flex',
+    flexDirection: 'row', // Side by side
+    gap: '20px',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '10px'
   };
 
   const logoStyle = {
-    fontSize: '4rem',
+    fontSize: '5rem',
     fontWeight: 'bold',
-    background: 'linear-gradient(45deg, #00ffff, #ffd700, #ff6b6b)',
+    // Refined gradient for high contrast and impact
+    background: 'linear-gradient(45deg, #FF4E00, #FFC837)',
     backgroundClip: 'text',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+    // Softer shadow for a cleaner "lift" off the page
+    textShadow: '3px 3px 6px rgba(0, 0, 0, 0.6)',
     marginBottom: '20px',
     letterSpacing: '3px'
   };
 
   const taglineStyle = {
     fontSize: '1.5rem',
-    color: '#00ffff',
+    color: '#FFC837',
     marginBottom: '40px',
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
     letterSpacing: '1px'
@@ -147,17 +164,10 @@ const LandingPage = ({ onGetStarted }) => {
 
   const descriptionStyle = {
     fontSize: '1.1rem',
-    color: '#ffffff',
+    color: '#B0C4DE',
     marginBottom: '50px',
     lineHeight: '1.6',
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-  };
-
-  const buttonContainerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-    alignItems: 'center'
   };
 
   const buttonStyle = {
@@ -189,7 +199,7 @@ const LandingPage = ({ onGetStarted }) => {
 
   const guestButtonStyle = {
     ...buttonStyle,
-    background: 'linear-gradient(45deg, #ffd700, #ff8c00)',
+    background: 'linear-gradient(45deg, #FF4E00, #FFC837)',
     color: '#000000',
     border: '2px solid #ffd700'
   };
@@ -200,25 +210,8 @@ const LandingPage = ({ onGetStarted }) => {
     borderRadius: '8px',
     padding: '15px',
     marginBottom: '20px',
-    color: '#ffffff',
+    color: '#B0C4DE',
     textAlign: 'center'
-  };
-
-  const featureListStyle = {
-    textAlign: 'left',
-    marginBottom: '30px',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: '20px',
-    borderRadius: '12px',
-    border: '2px solid #00ffff'
-  };
-
-  const featureItemStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '10px',
-    fontSize: '1rem',
-    color: '#ffffff'
   };
 
   return (
@@ -231,6 +224,9 @@ const LandingPage = ({ onGetStarted }) => {
         muted
         loop
         playsInline
+        onError={(e) => console.error('Video failed to load:', e)}
+        onLoadStart={() => console.log('Video loading started')}
+        onCanPlay={() => console.log('Video can play')}
       >
         <source src="/Whisk_cauajgfjztbimtixltbmmzqtndc2zc05njuyltk.mp4" type="video/mp4" />
         Your browser does not support the video tag.
@@ -241,34 +237,14 @@ const LandingPage = ({ onGetStarted }) => {
 
       {/* Main Content */}
       <div style={contentStyle}>
-        <h1 style={logoStyle}>STATS PandiT</h1>
+        <h1 style={logoStyle}>
+          <span style={{ whiteSpace: 'nowrap' }}>STATS PANDIT</span>
+        </h1>
         <p style={taglineStyle}>🎮 Ultimate Sports Quiz Challenge </p>
-        
-        <div style={featureListStyle}>
-          <div style={featureItemStyle}>
-            <span style={{ marginRight: '10px' }}>🏏</span>
-            <span>Test your knowledge across Cricket, Football, Soccer, Tennis & F1</span>
-          </div>
-          <div style={featureItemStyle}>
-            <span style={{ marginRight: '10px' }}>🎯</span>
-            <span>Random questions every time for endless challenge</span>
-          </div>
-          <div style={featureItemStyle}>
-            <span style={{ marginRight: '10px' }}>🏆</span>
-            <span>Compete on global leaderboards</span>
-          </div>
-          <div style={featureItemStyle}>
-            <span style={{ marginRight: '10px' }}>📊</span>
-            <span>Track your progress and quiz history</span>
-          </div>
-        </div>
-
         <p style={descriptionStyle}>
           Ready to prove you're the ultimate sports fan? Choose your path and let the games begin!
         </p>
-
         {error && <div style={errorStyle}>{error}</div>}
-
         <div style={buttonContainerStyle}>
           <button 
             style={googleButtonStyle}
@@ -320,7 +296,6 @@ const LandingPage = ({ onGetStarted }) => {
             )}
           </button>
         </div>
-
         <div style={{ 
           marginTop: '30px', 
           fontSize: '0.9rem', 

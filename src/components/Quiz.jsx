@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { getRandomQuestions, saveQuizResult } from '../firebase/firebase.js';
 
+// Sports configuration for display names
+const sportsConfig = {
+  american_football: { name: "Football", icon: "🏈" },
+  cricket: { name: "Cricket", icon: "🏏" },
+  nba: { name: "NBA", icon: "🏀" }
+};
+
 const Quiz = ({ categoryKey, onQuizComplete, user }) => {
   const [questions, setQuestions] = useState([]);
   const [usedQuestionIds, setUsedQuestionIds] = useState(new Set());
@@ -128,7 +135,7 @@ const Quiz = ({ categoryKey, onQuizComplete, user }) => {
         {/* Header */}
         <div style={headerStyle}>
             <div style={scoreStyle}><div style={scoreLabelStyle}>Score</div><div style={scoreValueStyle}>{score}</div></div>
-            <div style={middleSectionStyle}><div style={categoryDisplayStyle}>{categoryKey.toUpperCase().replace('-', ' ')} 🏆</div></div>
+            <div style={middleSectionStyle}><div style={categoryDisplayStyle}>{sportsConfig[categoryKey]?.name?.toUpperCase() || categoryKey.toUpperCase().replace('_', ' ')} 🏆</div></div>
             <div style={scoreStyle}><div style={scoreLabelStyle}>Answered</div><div style={scoreValueStyle}>{stats.correct + stats.incorrect}</div></div>
         </div>
 
