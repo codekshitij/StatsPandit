@@ -63,22 +63,30 @@ googleProvider.setCustomParameters({
 // Enhanced Google Sign-In function with fallback
 export const signInWithGoogle = async () => {
   try {
+    console.log('Attempting Google sign-in with popup...');
     // Try popup first
     const result = await signInWithPopup(auth, googleProvider);
+    console.log('Popup sign-in successful:', result.user.uid);
     return result;
   } catch (error) {
-    console.log('Popup error:', error.code);
+    console.log('Popup error:', error.code, error.message);
     if (
       error.code === 'auth/popup-blocked' || 
       error.code === 'auth/popup-closed-by-user' ||
       error.code === 'auth/unauthorized-domain' ||
+      error.code === 'auth/network-request-failed' ||
       error.message.includes('COOP') ||
       error.message.includes('Cross-Origin-Opener-Policy')
     ) {
-      // Fallback to redirect if popup is blocked or COOP issues
-      console.log('Popup blocked or COOP issue, falling back to redirect...');
-      await signInWithRedirect(auth, googleProvider);
-      return null; // Result will be handled by getRedirectResult
+      // Fallback to redirect if popup is blocked, network issues, or COOP issues
+      console.log('Popup failed, falling back to redirect method...');
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return null; // Result will be handled by getRedirectResult
+      } catch (redirectError) {
+        console.error('Redirect also failed:', redirectError);
+        throw new Error('Google Sign-In unavailable. Please try anonymous sign-in or check your internet connection.');
+      }
     }
     throw error;
   }
