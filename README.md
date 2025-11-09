@@ -268,8 +268,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 <div align="center">
 
-**Built with ❤️ by [Your Name](https://github.com/yourusername)**
+**Built with ❤️ by kshitij mishra(https://github.com/codekshitij)**
 
-[🎮 Play Now](https://stats-pandit.netlify.app) • [📖 Documentation](https://github.com/yourusername/stats-pandit/wiki) • [🐛 Report Bug](https://github.com/yourusername/stats-pandit/issues)
+[🎮 Play Now](https://statspandit.netlify.app/) • [📖 Documentation](https://github.com/yourusername/stats-pandit/wiki) • [🐛 Report Bug](https://github.com/yourusername/stats-pandit/issues)
 
 </div>
